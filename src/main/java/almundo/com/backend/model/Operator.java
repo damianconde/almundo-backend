@@ -14,6 +14,11 @@ public class Operator extends Employee{
 	}
 
 	public Employee HoldOn() {
-		return null;
+		return new Supervisor("Supervisor Test");
 	}
+
+	public Employee holdOn() {
+		// TODO Auto-generated method stub
+		return null;
+	}	
 }

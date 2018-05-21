@@ -12,4 +12,10 @@ public class Supervisor extends Employee{
 	public Supervisor(String name) {
 		super(name);
 	}
+
+	public Employee holdOn() {
+		return new Director("Test");
+	}
+	
+	
 }

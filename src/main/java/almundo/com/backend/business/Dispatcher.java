@@ -1,21 +1,21 @@
 package almundo.com.backend.business;
 
-import java.util.Collection;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import almundo.com.backend.contract.IDispatcher;
 import almundo.com.backend.model.Call;
 import almundo.com.backend.model.Employee;
+import almundo.com.backend.queue.OperatorQueue;
 
 public class Dispatcher implements IDispatcher{
-	private BlockingQueue<Employee> employeeQueue;
-	public BlockingQueue<Call> callQueue;
+	LinkedBlockingQueue<Employee> employees;
 	
-	public Dispatcher(Collection<Employee> employees) {
-		employeeQueue.addAll(employees);
+	public Dispatcher(OperatorQueue operators) {	
+		this.employees = operators;
 	}
 	
 	public void dispatchCall(Call call) throws InterruptedException {
-		callQueue.put(call);
+		call.setAttended(employees.take());		
+		call.log();
 	}
 }
