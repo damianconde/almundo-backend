@@ -2,15 +2,27 @@ package almundo.com.backend.model;
 
 import java.util.UUID;
 
+import javax.swing.text.Position;
+
 public class Call {
 	private UUID id;
 	private String name;
-	private Employee attended = null;	
+	private Employee attended = null;
+	private Integer priority;
 	
-	public Call(String name)
+	public Call(UUID id, String name)
 	{
+		this.id = id;
 		this.name = name;
-		this.id = UUID.randomUUID();
+	}
+	
+	public void setPriority(int priority) {
+		this.priority = priority;
+	}
+	
+	public boolean havePriority()
+	{
+		return priority == null;
 	}
 	
 	public UUID getId() {
@@ -32,10 +44,6 @@ public class Call {
 	
 	@Override
 	public String toString() {					
-		return "Call: " + name + " | Message: " + (attended == null ? "Todos nuestros operadores se encuentran ocupados, aguarde en linea, que sera atendido a la brevedad. Muchas gracias." : attended) ;
-	}
-	
-	public void log() {
-		System.out.println(this);
+		return "Position: " + priority + " | Message: " + attended;
 	}
 }

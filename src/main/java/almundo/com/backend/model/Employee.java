@@ -12,11 +12,12 @@ import almundo.com.backend.contract.IEmployee;
  *
  */
 public abstract class Employee implements IEmployee{	
-	private UUID id = UUID.randomUUID();
-	private String name = null;
+	private UUID id;
+	private String name;
 	
 	public Employee(String name)
 	{
+		id = UUID.randomUUID();
 		this.name = name;
 	}
 	

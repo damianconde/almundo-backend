@@ -12,10 +12,9 @@ public class Supervisor extends Employee{
 	public Supervisor(String name) {
 		super(name);
 	}
-
-	public Employee holdOn() {
-		return new Director("Test");
+	
+	@Override
+	public String toString() {
+		return "Muchas gracias por comunicarse con Almundo, mi nombre es " + super.getName() + ", supervisor del area. ¿En que puedo servirle?";
 	}
-	
-	
 }

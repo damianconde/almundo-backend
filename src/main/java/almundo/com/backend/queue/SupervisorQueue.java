@@ -2,9 +2,7 @@ package almundo.com.backend.queue;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
-import almundo.com.backend.model.Director;
 import almundo.com.backend.model.Employee;
-import almundo.com.backend.model.Supervisor;
 
 public class SupervisorQueue extends LinkedBlockingQueue<Employee> {
 	
@@ -12,19 +10,17 @@ public class SupervisorQueue extends LinkedBlockingQueue<Employee> {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private LinkedBlockingQueue<Supervisor> supervisors;
-	private LinkedBlockingQueue<Employee> directors;
+	private DirectorQueue directorQueue;
 	
-	public SupervisorQueue(LinkedBlockingQueue<Supervisor> supervisors, DirectorQueue directors) {
-		this.supervisors = supervisors;
-		this.directors = directors;
+	public SupervisorQueue(DirectorQueue directorQueue) {
+		this.directorQueue = directorQueue;
 	}
 	
 	@Override
 	public Employee take() throws InterruptedException {
-		if(supervisors.isEmpty())
-			return directors.take();
+		if(isEmpty())
+			return directorQueue.take();
 		
-		return supervisors.take();
+		return super.take();
 	}
 }
