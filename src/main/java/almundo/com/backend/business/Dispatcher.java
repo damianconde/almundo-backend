@@ -109,8 +109,8 @@ public class Dispatcher extends Observable implements IDispatcher{
 			
 			call.setAttended(operators.take());
 			
-			// Intervalo de duracion del Llamado entre 3 y 5 segundos. 
-			int value = 3000 +  (int)(Math.random() * 2000);
+			// Intervalo de duracion del Llamado entre 5 y 10 segundos. 
+			int value = 5000 +  (int)(Math.random() * 5000);
 			Thread.sleep(value);
 			//Dejo disponible al empleado.
 			employeeQueueOrchestation(call.getAttended());
