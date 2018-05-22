@@ -1,13 +1,16 @@
 package almundo.com.backend.business;
 
 import java.lang.reflect.Method;
+import java.util.NoSuchElementException;
 import java.util.Observable;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import almundo.com.backend.config.Config;
 import almundo.com.backend.contract.IDispatcher;
 import almundo.com.backend.exception.WithoutEmployeeException;
-import almundo.com.backend.exception.WithoutWaitCallException;
 import almundo.com.backend.model.Call;
 import almundo.com.backend.model.Director;
 import almundo.com.backend.model.Employee;
@@ -15,6 +18,7 @@ import almundo.com.backend.model.Operator;
 import almundo.com.backend.model.Response;
 import almundo.com.backend.model.Response.Status;
 import almundo.com.backend.model.Supervisor;
+import almundo.com.backend.observer.WaitCallQueueObserver;
 import almundo.com.backend.queue.DirectorQueue;
 import almundo.com.backend.queue.OperatorQueue;
 import almundo.com.backend.queue.SupervisorQueue;
@@ -23,19 +27,20 @@ public class Dispatcher extends Observable implements IDispatcher{
 	private LinkedBlockingQueue<Employee> operators;
 	private LinkedBlockingQueue<Employee> supervisors;
 	private LinkedBlockingQueue<Employee> directors;
-	//private WaitCallQueue waitCallQueue;
-	private LinkedBlockingQueue<Call> waitCallQueue;
+	private Queue<Call> waitCallQueue;
 	private AtomicInteger priority;
 	private WaitCallQueueObserver observer;
+	private Config config;
 	
 	public Dispatcher(OperatorQueue operators, SupervisorQueue supervisors, DirectorQueue directors) {	
 		this.directors = directors == null ? new DirectorQueue() : directors;
-		this.supervisors = supervisors == null ? new SupervisorQueue(directors) : supervisors;
-		this.operators = operators == null ? new OperatorQueue(supervisors) : operators;
-		waitCallQueue = new LinkedBlockingQueue<Call>();
+		this.supervisors = supervisors == null ? new SupervisorQueue((DirectorQueue)this.directors) : supervisors;
+		this.operators = operators == null ? new OperatorQueue((SupervisorQueue)this.supervisors) : operators;
+		waitCallQueue = new ConcurrentLinkedQueue<Call>();
 		priority = new AtomicInteger(0);
 		observer = new WaitCallQueueObserver(this);
-    	addObserver(observer);
+    	addObserver(observer);    
+    	config = new Config();
 	}
 	
 	public void addWaitQueue(Call call) {
@@ -43,11 +48,8 @@ public class Dispatcher extends Observable implements IDispatcher{
 		waitCallQueue.add(call);
 	}
 	
-	public Call getWaitCall() throws WithoutWaitCallException {
-		//Uso Take para evitar posibles nulos, ya que de no encontrar datos, espera a que los haya.
-		if(waitCallQueue.isEmpty()) throw new WithoutWaitCallException("La cola de espera ya ha sido consumida.");
-		Call call = waitCallQueue.poll();
-		return call;
+	public Call getWaitCall() throws NoSuchElementException {
+		return waitCallQueue.remove();		
 	}
 	
 	public AtomicInteger getPriority()
@@ -108,7 +110,7 @@ public class Dispatcher extends Observable implements IDispatcher{
 		
 		try {
 			if(call == null) 
-				throw new NullPointerException("La Llamada no puede ser nula.");
+				throw new NoSuchElementException("La Llamada no puede ser nula.");
 			
 			if(call.havePriority())
 				call.setPriority(priority.incrementAndGet());
@@ -116,7 +118,10 @@ public class Dispatcher extends Observable implements IDispatcher{
 			call.setAttended(operators.take());
 			
 			// Intervalo de duracion del Llamado entre 5 y 10 segundos. 
-			int value = 5000 +  (int)(Math.random() * 5000);
+			int timeCalledMin = Integer.parseInt(config.properties.getProperty("TIME_CALLED_MIN"));
+			int timeCalledMax = Integer.parseInt(config.properties.getProperty("TIME_CALLED_MAX"));
+			
+			int value = timeCalledMin + (int)(Math.random() * (timeCalledMax - timeCalledMin));
 			Thread.sleep(value);
 			//Dejo disponible al empleado.
 			employeeQueueOrchestation(call.getAttended());
@@ -124,7 +129,7 @@ public class Dispatcher extends Observable implements IDispatcher{
 		} catch (WithoutEmployeeException e) {
 			addWaitQueue(call);
 			response = new Response(Status.OnHold, e.getMessage(), call);
-		} catch (WithoutWaitCallException e) {
+		} catch (NoSuchElementException e) {
 			response = new Response(Status.Success, e.getMessage(), call);
 		}
 		catch (InterruptedException e) {
@@ -141,9 +146,7 @@ public class Dispatcher extends Observable implements IDispatcher{
 		return response;
 	}	
 	
-	public void updateObservable(ProcessCall processCall) {
-		//Alimento al observer del mismo hilo con el que fue llamado cuando respondio OnHold
-		observer.processCall = processCall;
+	public void updateObservable() {		
 		setChanged();
 	}
 	

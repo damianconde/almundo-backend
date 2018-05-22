@@ -1,15 +1,15 @@
-package almundo.com.backend.business;
+package almundo.com.backend.observer;
 
+import java.util.NoSuchElementException;
 import java.util.Observable;
 import java.util.Observer;
 
-import almundo.com.backend.exception.WithoutWaitCallException;
-import almundo.com.backend.model.Call;
+import almundo.com.backend.business.Dispatcher;
+import almundo.com.backend.observable.ProcessCall;
 
 public class WaitCallQueueObserver implements Observer{
 
    private Dispatcher dispatcher;
-   public ProcessCall processCall;
    
    public WaitCallQueueObserver(Dispatcher dispatcher)
    {
@@ -21,9 +21,8 @@ public class WaitCallQueueObserver implements Observer{
       if (obs == dispatcher)
       {
 		try {
-			processCall.call = dispatcher.getWaitCall();
-			processCall.call();	
-		} catch (WithoutWaitCallException e) {
+			new ProcessCall(dispatcher, dispatcher.getWaitCall()).call();
+		} catch (NoSuchElementException e) {
 			return;
 		} catch (Exception e) {
 			e.printStackTrace();
