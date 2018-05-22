@@ -118,8 +118,8 @@ public class Dispatcher extends Observable implements IDispatcher{
 			call.setAttended(operators.take());
 			
 			// Intervalo de duracion del Llamado entre 5 y 10 segundos. 
-			int timeCalledMin = Integer.parseInt(config.properties.getProperty("TIME_CALLED_MIN"));
-			int timeCalledMax = Integer.parseInt(config.properties.getProperty("TIME_CALLED_MAX"));
+			int timeCalledMin = Integer.parseInt(config.properties.getProperty("TIME_CALLED_MIN", "5000"));
+			int timeCalledMax = Integer.parseInt(config.properties.getProperty("TIME_CALLED_MAX", "10000"));
 			
 			int value = timeCalledMin + (int)(Math.random() * (timeCalledMax - timeCalledMin));
 			Thread.sleep(value);

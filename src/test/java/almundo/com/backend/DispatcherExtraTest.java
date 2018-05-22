@@ -57,9 +57,14 @@ public class DispatcherExtraTest {
 	@Test
 	public void configTest() {
 		Config config = new Config();
+		List<String> propertiesName = new ArrayList<>();
+		propertiesName.add("TIME_CALLED_MIN");
+		propertiesName.add("TIME_CALLED_MAX");
 		
-		Assertions.assertEquals("TIME_CALLED_MIN", config.properties.getProperty("TIME_CALLED_MIN"));
-		Assertions.assertEquals("TIME_CALLED_MAX", config.properties.getProperty("TIME_CALLED_MAX"));
+		propertiesName.forEach(prop -> Assertions.assertFalse(config.properties.getProperty(prop).isEmpty()));		
+		
+		//Assertions.assertEquals("TIME_CALLED_MIN", config.properties.getProperty("TIME_CALLED_MIN"));
+		//Assertions.assertEquals("TIME_CALLED_MAX", config.properties.getProperty("TIME_CALLED_MAX"));
 	}
 	
 	@DisplayName("Test of 5 calls Concurrents without employees")
