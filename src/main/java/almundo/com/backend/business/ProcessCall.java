@@ -1,12 +1,13 @@
 package almundo.com.backend.business;
 
 import java.util.Observable;
+import java.util.concurrent.Callable;
 
 import almundo.com.backend.model.Call;
 import almundo.com.backend.model.Response;
 import almundo.com.backend.model.Response.Status;
 
-public class ProcessCall extends Observable implements Runnable{
+public class ProcessCall extends Observable implements Callable<Response>{
 
 	Dispatcher dispatcher;
 	Call call;
@@ -16,15 +17,27 @@ public class ProcessCall extends Observable implements Runnable{
 		this.call = call;
 	}
 	
-	public void run() {
+//	public void run() {
+//		Response response = 
+//		//TODO
+//		System.out.println(response);
+//		
+//		//Como se libero un empleado, lo notifico al observer
+//		if(response.getStatus() == Status.Attended) {
+//			dispatcher.updateObservable();
+//			dispatcher.notifyObservers();
+//		}
+//	}
+
+	@Override
+	public Response call() throws Exception {
 		Response response = dispatcher.dispatchCall(call);
-		//TODO
 		System.out.println(response);
-		
 		//Como se libero un empleado, lo notifico al observer
 		if(response.getStatus() == Status.Attended) {
-			dispatcher.updateObservable();
+			dispatcher.updateObservable(this);
 			dispatcher.notifyObservers();
 		}
+		return response;
 	}
 }

@@ -5,7 +5,8 @@ public class Response {
 		Attended, // La llama fue realizada correctamente
 		Interrupted, //Se envia a la cola de espera
 		OnHold, //Se envia a la cola de espera
-		Error
+		Error,
+		Success //Finalizo la ejecucion de todas las llamadas de forma exitosa
 	}
 	
 	private Status status;
@@ -43,6 +44,9 @@ public class Response {
 				break;
 			case Interrupted:
 				response = "Call: " + call.getName() + " | Attended: " + call.getAttended().getName() + " | Status: " + status + " | Message: " + message;
+				break;
+			case Success:
+				response = "Todas las llamas han sido costestadas correctamente.";
 				break;
 		default:
 			response = "Call: null | Status: " + status + " | Message: " + message;

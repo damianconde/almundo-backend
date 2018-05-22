@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import almundo.com.backend.contract.IDispatcher;
 import almundo.com.backend.exception.WithoutEmployeeException;
+import almundo.com.backend.exception.WithoutWaitCallException;
 import almundo.com.backend.model.Call;
 import almundo.com.backend.model.Director;
 import almundo.com.backend.model.Employee;
@@ -25,6 +26,7 @@ public class Dispatcher extends Observable implements IDispatcher{
 	//private WaitCallQueue waitCallQueue;
 	private LinkedBlockingQueue<Call> waitCallQueue;
 	private AtomicInteger priority;
+	private WaitCallQueueObserver observer;
 	
 	public Dispatcher(OperatorQueue operators, SupervisorQueue supervisors, DirectorQueue directors) {	
 		this.directors = directors == null ? new DirectorQueue() : directors;
@@ -32,6 +34,8 @@ public class Dispatcher extends Observable implements IDispatcher{
 		this.operators = operators == null ? new OperatorQueue(supervisors) : operators;
 		waitCallQueue = new LinkedBlockingQueue<Call>();
 		priority = new AtomicInteger(0);
+		observer = new WaitCallQueueObserver(this);
+    	addObserver(observer);
 	}
 	
 	public void addWaitQueue(Call call) {
@@ -39,9 +43,11 @@ public class Dispatcher extends Observable implements IDispatcher{
 		waitCallQueue.add(call);
 	}
 	
-	public Call getWaitCall() throws InterruptedException {
+	public Call getWaitCall() throws WithoutWaitCallException {
 		//Uso Take para evitar posibles nulos, ya que de no encontrar datos, espera a que los haya.
-		return waitCallQueue.take();
+		if(waitCallQueue.isEmpty()) throw new WithoutWaitCallException("La cola de espera ya ha sido consumida.");
+		Call call = waitCallQueue.poll();
+		return call;
 	}
 	
 	public AtomicInteger getPriority()
@@ -118,7 +124,10 @@ public class Dispatcher extends Observable implements IDispatcher{
 		} catch (WithoutEmployeeException e) {
 			addWaitQueue(call);
 			response = new Response(Status.OnHold, e.getMessage(), call);
-		} catch (InterruptedException e) {
+		} catch (WithoutWaitCallException e) {
+			response = new Response(Status.Success, e.getMessage(), call);
+		}
+		catch (InterruptedException e) {
 			addWaitQueue(call);
 			response = new Response(Status.Interrupted, e.getMessage(), call);
 		} catch (NullPointerException e) {
@@ -132,7 +141,9 @@ public class Dispatcher extends Observable implements IDispatcher{
 		return response;
 	}	
 	
-	public void updateObservable() {
+	public void updateObservable(ProcessCall processCall) {
+		//Alimento al observer del mismo hilo con el que fue llamado cuando respondio OnHold
+		observer.processCall = processCall;
 		setChanged();
 	}
 	
