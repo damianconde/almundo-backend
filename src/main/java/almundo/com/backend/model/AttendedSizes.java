@@ -1,5 +1,9 @@
 package almundo.com.backend.model;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+@Component(value="attendedSizes")
 public class AttendedSizes {
 	private long operatorSize;
 	private long supervisorSize;
@@ -8,6 +12,11 @@ public class AttendedSizes {
 	private long onHoldSize;
 	private long errorSize;
 	private long interruptedSize;	
+	
+	@Autowired
+	public AttendedSizes() {
+		
+	}
 	
 	public long getOnHoldSize() {
 		return onHoldSize;

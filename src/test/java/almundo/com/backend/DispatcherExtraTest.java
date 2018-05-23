@@ -12,9 +12,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import almundo.com.backend.business.Dispatcher;
 import almundo.com.backend.business.Utils;
+import almundo.com.backend.config.AppConfig;
 import almundo.com.backend.config.Config;
 import almundo.com.backend.model.AttendedSizes;
 import almundo.com.backend.model.Call;
@@ -29,28 +32,25 @@ import almundo.com.backend.queue.SupervisorQueue;
 
 public class DispatcherExtraTest {
 
+	ConfigurableApplicationContext context;
 	Dispatcher dispatcher = null;
-	//Inicializo las colas de empleados 
-	DirectorQueue directorQueue = new DirectorQueue();
-	SupervisorQueue supervisorQueue = new SupervisorQueue(directorQueue);
-	OperatorQueue operatorQueue = new OperatorQueue(supervisorQueue);
 	
 	@BeforeEach
 	void init() {
+		context = new AnnotationConfigApplicationContext(AppConfig.class);
+		dispatcher = context.getBean(Dispatcher.class);
+		
 		//Agrego directores a la cola
 		for(int i =1; i <= 5; i++)
-			directorQueue.add(new Director("Director " + i));
+			dispatcher.addEmployee(new Director("Director " + i));
 		
 		//Agrego supervisores a la cola
 		for(int i =1; i <= 5; i++)
-			supervisorQueue.add(new Supervisor("Supervisor " + i));
+			dispatcher.addEmployee(new Supervisor("Supervisor " + i));
 		
 		//Agrego operadores a la cola
 		for(int i =1; i <= 5; i++)
-			operatorQueue.add(new Operator("Operador " + i));
-		
-		//Instancio el Dispatcher con las colas de los empleados disponibles.
-    	dispatcher = new Dispatcher(operatorQueue, supervisorQueue, directorQueue);    	
+			dispatcher.addEmployee(new Operator("Operador " + i));    	
 	}
 	
 	@DisplayName("Test of Config setting correctly")
@@ -61,17 +61,16 @@ public class DispatcherExtraTest {
 		propertiesName.add("TIME_CALLED_MIN");
 		propertiesName.add("TIME_CALLED_MAX");
 		
-		propertiesName.forEach(prop -> Assertions.assertFalse(config.properties.getProperty(prop).isEmpty()));		
-		
-		//Assertions.assertEquals("TIME_CALLED_MIN", config.properties.getProperty("TIME_CALLED_MIN"));
-		//Assertions.assertEquals("TIME_CALLED_MAX", config.properties.getProperty("TIME_CALLED_MAX"));
+		propertiesName.forEach(prop -> Assertions.assertFalse(config.properties.getProperty(prop).isEmpty()));
 	}
 	
 	@DisplayName("Test of 5 calls Concurrents without employees")
 	@Test
 	public void fiveConcurrentsCallsWithoutEmployees() {
 		//La idea de este Test uniario es de enviar llamados sin que haya empleados en la empresa, es decir esta cerrada.
-		dispatcher = new Dispatcher(null, null, null);
+		dispatcher.setDirectors(null);
+		dispatcher.setSupervisors(null);
+		dispatcher.setOperators(null);
 		
 		//Se corren los Tests
 		
@@ -185,7 +184,7 @@ public class DispatcherExtraTest {
 	public void fiveConcurrentsCallsWithoutOperators() {
 		//La idea de este Test uniario es de enviar 5 llamados teniendo solo supervisores y directores
 		
-		dispatcher = new Dispatcher(null, supervisorQueue, directorQueue);
+		dispatcher.setOperators(null);
 		
 		//Se corren los Tests
 		
@@ -227,8 +226,7 @@ public class DispatcherExtraTest {
 	public void fiveConcurrentsCallsWithoutSupervisors() {
 		//La idea de este Test uniario es de enviar 5 llamados teniendo solo operadores y directores
 		
-		dispatcher = new Dispatcher(operatorQueue, null, directorQueue);
-		
+		dispatcher.setSupervisors(null);
 		//Se corren los Tests
 		
 		System.out.println("Inicia el Test de 5 Llamados concurrentes sin supervisores!!!");
@@ -269,7 +267,7 @@ public class DispatcherExtraTest {
 	public void fiveConcurrentsCallsWithoutDirectors() {
 		//La idea de este Test uniario es de enviar 5 llamados teniendo solo operadores y supervisores
 		
-		dispatcher = new Dispatcher(operatorQueue, supervisorQueue, null);
+		dispatcher.setDirectors(null);
 		
 		//Se corren los Tests
 		

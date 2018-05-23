@@ -5,7 +5,6 @@
   <groupId>almundo.com</groupId>
   <artifactId>backend</artifactId>
   <version>1.1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
 
   <name>backend</name>
   <url>http://maven.apache.org</url>
@@ -21,6 +20,16 @@
   </properties>
 
   <dependencies>  
+  	<dependency>
+	    <groupId>org.springframework.boot</groupId>
+	    <artifactId>spring-boot-autoconfigure</artifactId>
+	    <version>1.0.0.RELEASE</version>
+	</dependency>
+  	<dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId> spring-context</artifactId>
+        <version>5.1.0.BUILD-SNAPSHOT</version>
+    </dependency>
     <dependency>
 		<groupId>org.apache.logging.log4j</groupId>
 		<artifactId>log4j-api</artifactId>
@@ -76,4 +85,14 @@
 		    </resource>
 	  	</resources>
 	</build>
+	<repositories>
+    	<repository>
+        	<id>spring-snapshots</id>
+        	<name>Spring Snapshots</name>
+        	<url>https://repo.spring.io/libs-snapshot</url>
+        	<snapshots>
+            	<enabled>true</enabled>
+        	</snapshots>
+    	</repository>
+	</repositories>
 </project>

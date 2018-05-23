@@ -2,8 +2,6 @@ package almundo.com.backend.model;
 
 import java.util.UUID;
 
-import javax.swing.text.Position;
-
 public class Call {
 	private UUID id;
 	private String name;

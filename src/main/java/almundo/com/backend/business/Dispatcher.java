@@ -8,6 +8,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import almundo.com.backend.config.Config;
 import almundo.com.backend.contract.IDispatcher;
 import almundo.com.backend.exception.WithoutEmployeeException;
@@ -23,9 +27,16 @@ import almundo.com.backend.queue.DirectorQueue;
 import almundo.com.backend.queue.OperatorQueue;
 import almundo.com.backend.queue.SupervisorQueue;
 
+@Component("dispatcher")
 public class Dispatcher extends Observable implements IDispatcher{
+	@Autowired
+	@Qualifier(value="operatorQueue")
 	private LinkedBlockingQueue<Employee> operators;
+	@Autowired
+	@Qualifier(value="supervisorQueue")
 	private LinkedBlockingQueue<Employee> supervisors;
+	@Autowired
+	@Qualifier(value="directorQueue")
 	private LinkedBlockingQueue<Employee> directors;
 	private Queue<Call> waitCallQueue;
 	private AtomicInteger priority;

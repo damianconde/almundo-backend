@@ -12,7 +12,7 @@ public final class Config {
 	public Config() {
 		try {			
 			Class<Config> clazz = Config.class;
-			InputStream inputStream = clazz.getResourceAsStream("config.properties");
+			InputStream inputStream = clazz.getResourceAsStream("/almundo/com/backend/config/config.properties");
 			properties.load(inputStream);
 		} catch (FileNotFoundException e) {			
 			e.printStackTrace();

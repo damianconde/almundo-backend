@@ -2,9 +2,12 @@ package almundo.com.backend.queue;
 
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.springframework.stereotype.Component;
+
 import almundo.com.backend.exception.WithoutEmployeeException;
 import almundo.com.backend.model.Employee;
 
+@Component("directorQueue")
 public class DirectorQueue extends LinkedBlockingQueue<Employee> {
 	/**
 	 * 
@@ -12,7 +15,7 @@ public class DirectorQueue extends LinkedBlockingQueue<Employee> {
 	private static final long serialVersionUID = 1L;
 	
 	public DirectorQueue() {
-		
+		super();
 	}
 
 	@Override

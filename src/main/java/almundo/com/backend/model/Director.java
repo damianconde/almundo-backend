@@ -3,10 +3,13 @@
  */
 package almundo.com.backend.model;
 
+import org.springframework.stereotype.Component;
+
 /**
  * @author Damian Conde
  *
  */
+@Component("director")
 public class Director extends Employee{
 
 	public Director(String name) {

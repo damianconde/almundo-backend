@@ -5,12 +5,15 @@ package almundo.com.backend.model;
 
 import java.util.UUID;
 
+import org.springframework.stereotype.Component;
+
 import almundo.com.backend.contract.IEmployee;
 
 /**
  * @author Damian Conde
  *
  */
+@Component("employee")
 public abstract class Employee implements IEmployee{	
 	private UUID id;
 	private String name;
