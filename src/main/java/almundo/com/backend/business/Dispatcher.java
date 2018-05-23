@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import almundo.com.backend.config.Config;
 import almundo.com.backend.contract.IDispatcher;
+import almundo.com.backend.exception.ServiceNotAvailableException;
 import almundo.com.backend.exception.WithoutEmployeeException;
 import almundo.com.backend.model.Call;
 import almundo.com.backend.model.Director;
@@ -43,10 +44,8 @@ public class Dispatcher extends Observable implements IDispatcher{
 	private WaitCallQueueObserver observer;
 	private Config config;
 	
-	public Dispatcher(OperatorQueue operators, SupervisorQueue supervisors, DirectorQueue directors) {	
-		this.directors = directors == null ? new DirectorQueue() : directors;
-		this.supervisors = supervisors == null ? new SupervisorQueue((DirectorQueue)this.directors) : supervisors;
-		this.operators = operators == null ? new OperatorQueue((SupervisorQueue)this.supervisors) : operators;
+	public Dispatcher(OperatorQueue operators, SupervisorQueue supervisors, DirectorQueue directors) throws ServiceNotAvailableException {	
+		initQueuesIfNull(true);
 		waitCallQueue = new ConcurrentLinkedQueue<Call>();
 		priority = new AtomicInteger(0);
 		observer = new WaitCallQueueObserver(this);
@@ -116,6 +115,15 @@ public class Dispatcher extends Observable implements IDispatcher{
 		this.directors.add(director);
 	}
 	
+	private void initQueuesIfNull(boolean fromConstructor) throws ServiceNotAvailableException {
+		if(!fromConstructor && this.directors == null && this.supervisors == null && this.operators == null)
+			throw new ServiceNotAvailableException();
+			
+		this.directors = directors == null ? new DirectorQueue() : directors;
+		this.supervisors = supervisors == null ? new SupervisorQueue((DirectorQueue)this.directors) : supervisors;
+		this.operators = operators == null ? new OperatorQueue((SupervisorQueue)this.supervisors) : operators;
+	}
+	
 	public Response dispatchCall(Call call) {
 		Response response = null;
 		
@@ -125,6 +133,8 @@ public class Dispatcher extends Observable implements IDispatcher{
 			
 			if(call.havePriority())
 				call.setPriority(priority.incrementAndGet());
+			
+			initQueuesIfNull(false);
 			
 			call.setAttended(operators.take());
 			
@@ -137,6 +147,8 @@ public class Dispatcher extends Observable implements IDispatcher{
 			//Dejo disponible al empleado.
 			employeeQueueOrchestation(call.getAttended());
 			response = new Response(Status.Attended, call.toString(), call);
+		} catch (ServiceNotAvailableException e) {			
+			response = new Response(Status.WithoutService, e.getMessage(), call);
 		} catch (WithoutEmployeeException e) {
 			addWaitQueue(call);
 			response = new Response(Status.OnHold, e.getMessage(), call);

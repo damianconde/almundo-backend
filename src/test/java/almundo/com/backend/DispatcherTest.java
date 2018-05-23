@@ -8,14 +8,19 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.Assertions;
-
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 import almundo.com.backend.business.Dispatcher;
 import almundo.com.backend.business.Utils;
+import almundo.com.backend.config.AppConfig;
+import almundo.com.backend.exception.ServiceNotAvailableException;
 import almundo.com.backend.model.AttendedSizes;
 import almundo.com.backend.model.Call;
 import almundo.com.backend.model.Director;
@@ -23,33 +28,32 @@ import almundo.com.backend.model.Operator;
 import almundo.com.backend.model.Response;
 import almundo.com.backend.model.Supervisor;
 import almundo.com.backend.observable.ProcessCall;
-import almundo.com.backend.queue.DirectorQueue;
-import almundo.com.backend.queue.OperatorQueue;
-import almundo.com.backend.queue.SupervisorQueue;
 
 public class DispatcherTest {
 
+	ConfigurableApplicationContext context;
 	Dispatcher dispatcher = null;
-	//Inicializo las colas de empleados 
-	DirectorQueue directorQueue = new DirectorQueue();
-	SupervisorQueue supervisorQueue = new SupervisorQueue(directorQueue);
-	OperatorQueue operatorQueue = new OperatorQueue(supervisorQueue);
+	private Logger logger;
 	
 	@BeforeEach
-	void init() {		
+	void init() throws ServiceNotAvailableException {	
+		System.setProperty("log4j.configurationFile",  "almundo/com/backend/config/log4j2.xml");
+	    System.setProperty("logFilename", "logs/Main.log");
+	    
+	    logger = LogManager.getLogger(Logger.class.getName());
+	    
+		context = new AnnotationConfigApplicationContext(AppConfig.class);
+		dispatcher = context.getBean(Dispatcher.class);
 		//Agrego directores a la cola
-		directorQueue.add(new Director("Director 1"));
+		dispatcher.addEmployee(new Director("Director 1"));
 		
 		//Agrego supervisores a la cola
 		for(int i =1; i <= 2; i++)
-			supervisorQueue.add(new Supervisor("Supervisor " + i));
+			dispatcher.addEmployee(new Supervisor("Supervisor " + i));
 		
 		//Agrego operadores a la cola
 		for(int i =1; i <= 4; i++)
-			operatorQueue.add(new Operator("Operador " + i));
-		
-		//Instancio el Dispatcher con las colas de los empleados disponibles.
-    	dispatcher = new Dispatcher(operatorQueue, supervisorQueue, directorQueue);    	
+			dispatcher.addEmployee(new Operator("Operador " + i)); 	
 	}
 	
 	@DisplayName("Test of 10 calls Concurrents")	
@@ -62,7 +66,7 @@ public class DispatcherTest {
 		
 		//Se corren los Tests
 		
-		System.out.println("Inicia el Test de 10 Llamados concurrentes!!!");
+		logger.info("Inicia el Test de 10 Llamados concurrentes!!!");
 		
 		//Creo el pool de hilos, hasta 100 Concurrentes 
     	ExecutorService executor = Executors.newFixedThreadPool(100);
@@ -76,7 +80,7 @@ public class DispatcherTest {
     	//Finalizo el envio de Threads.
 		while(!executor.isTerminated()) { }
 		
-		System.out.println("Finaliza el Test de 10 Llamados concurrentes!!!");
+		logger.info("Finaliza el Test de 10 Llamados concurrentes!!!");
     	
 		//Valido los Response
     	AttendedSizes attendedSizes = Utils.responseSizes(responses);

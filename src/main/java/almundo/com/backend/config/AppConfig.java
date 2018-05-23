@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import almundo.com.backend.business.Dispatcher;
+import almundo.com.backend.exception.ServiceNotAvailableException;
 import almundo.com.backend.model.AttendedSizes;
 import almundo.com.backend.queue.DirectorQueue;
 import almundo.com.backend.queue.OperatorQueue;
@@ -33,7 +34,7 @@ public class AppConfig {
 	}
 	
 	@Bean
-	public Dispatcher dispatcher() {
+	public Dispatcher dispatcher() throws ServiceNotAvailableException {
 		return new Dispatcher(operatorQueue(), supervisorQueue(), directorQueue());
 	}
 }

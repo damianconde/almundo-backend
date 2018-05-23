@@ -99,6 +99,28 @@ public class Utils {
 				})
 				.count());
 		
+		attendedSizes.setSuccessSize(responses
+				.stream()
+				.filter(element -> {
+					try {
+						return element.get().getStatus() == Status.Success;
+					} catch (Exception e) {
+						return false;
+					}					
+				})
+				.count());
+		
+		attendedSizes.setWithoutServiceSize(responses
+				.stream()
+				.filter(element -> {
+					try {
+						return element.get().getStatus() == Status.WithoutService;
+					} catch (Exception e) {
+						return false;
+					}					
+				})
+				.count());
+		
 		return attendedSizes;
 	}
 }

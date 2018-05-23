@@ -11,7 +11,9 @@ public class AttendedSizes {
 	private long attendedSize;
 	private long onHoldSize;
 	private long errorSize;
-	private long interruptedSize;	
+	private long interruptedSize;
+	private long successSize;
+	private long withoutServiceSize;
 	
 	@Autowired
 	public AttendedSizes() {
@@ -60,5 +62,21 @@ public class AttendedSizes {
 	}
 	public void setAttendedSize(long attendedSize) {
 		this.attendedSize = attendedSize;
+	}
+
+	public long getSuccessSize() {
+		return successSize;
+	}
+
+	public void setSuccessSize(long successSize) {
+		this.successSize = successSize;
+	}
+
+	public long getWithoutServiceSize() {
+		return withoutServiceSize;
+	}
+
+	public void setWithoutServiceSize(long withoutServiceSize) {
+		this.withoutServiceSize = withoutServiceSize;
 	}
 }

@@ -6,7 +6,8 @@ public class Response {
 		Interrupted, //Se envia a la cola de espera
 		OnHold, //Se envia a la cola de espera
 		Error,
-		Success //Finalizo la ejecucion de todas las llamadas de forma exitosa
+		Success, //Finalizo la ejecucion de todas las llamadas de forma exitosa.
+		WithoutService //Es cuando no hay ningun empleado en la instancia inicial
 	}
 	
 	private Status status;
@@ -49,7 +50,7 @@ public class Response {
 				response = "Todas las llamas han sido costestadas correctamente.";
 				break;
 		default:
-			response = "Call: null | Status: " + status + " | Message: " + message;
+			response = "Por el momento no estamos atendiendo llamados, vuelva a intentar mas tarde.";
 		}
 		
 		return response;

@@ -8,8 +8,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.junit.jupiter.api.Assertions;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -26,17 +29,20 @@ import almundo.com.backend.model.Operator;
 import almundo.com.backend.model.Response;
 import almundo.com.backend.model.Supervisor;
 import almundo.com.backend.observable.ProcessCall;
-import almundo.com.backend.queue.DirectorQueue;
-import almundo.com.backend.queue.OperatorQueue;
-import almundo.com.backend.queue.SupervisorQueue;
 
 public class DispatcherExtraTest {
 
 	ConfigurableApplicationContext context;
 	Dispatcher dispatcher = null;
+	private Logger logger = null;
 	
 	@BeforeEach
 	void init() {
+		System.setProperty("log4j.configurationFile",  "almundo/com/backend/config/log4j2.xml");
+	    System.setProperty("logFilename", "logs/Main.log");
+	    
+	    logger = LogManager.getLogger(Logger.class.getName());
+	    
 		context = new AnnotationConfigApplicationContext(AppConfig.class);
 		dispatcher = context.getBean(Dispatcher.class);
 		
@@ -74,7 +80,7 @@ public class DispatcherExtraTest {
 		
 		//Se corren los Tests
 		
-		System.out.println("Inicia el Test de 5 Llamados concurrentes sin empleados!!!");
+		logger.info("Inicia el Test de 5 Llamados concurrentes sin empleados!!!");
 		
 		//Creo el pool de hilos, hasta 5 Concurrentes 
     	ExecutorService executor = Executors.newFixedThreadPool(5);
@@ -88,7 +94,7 @@ public class DispatcherExtraTest {
     	//Finalizo el envio de Threads.
 		while(!executor.isTerminated()) { }
 		
-		System.out.println("Finaliza el Test de 5 Llamados concurrentes sin empleados!!!");
+		logger.info("Finaliza el Test de 5 Llamados concurrentes sin empleados!!!");
     	
 		//Valido los Response    	    	
     	AttendedSizes attendedSizes = Utils.responseSizes(responses);    	
@@ -96,8 +102,10 @@ public class DispatcherExtraTest {
     	//Estado inicial de las 5 llamadas concurrentes
     	Assertions.assertEquals(0, attendedSizes.getErrorSize()); 
     	Assertions.assertEquals(0, attendedSizes.getAttendedSize());
-    	Assertions.assertEquals(5, attendedSizes.getOnHoldSize());
+    	Assertions.assertEquals(0, attendedSizes.getOnHoldSize());
     	Assertions.assertEquals(0, attendedSizes.getInterruptedSize());
+    	Assertions.assertEquals(0, attendedSizes.getSuccessSize());
+    	Assertions.assertEquals(5, attendedSizes.getWithoutServiceSize());
 	}	
 	
 	@DisplayName("Test of 5 calls Concurrents and lower number of calls to available employees")	
@@ -142,7 +150,7 @@ public class DispatcherExtraTest {
 	}	
 	
 	@DisplayName("Test of 100 calls Concurrents")	
-	@Test
+	@Test	
 	public void hundredConcurrentsCalls() {
 		//El orden de prioridades es Operador, Supervisor y Director, respectivamente. 
 		//De no encontrar alguien que atienda el llamado, pasa a estar en la cola espera.
